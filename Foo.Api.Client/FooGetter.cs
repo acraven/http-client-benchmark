@@ -1,4 +1,6 @@
-﻿namespace Foo.Api.Client
+﻿using System.Net.Http;
+
+namespace Foo.Api.Client
 {
    using System.Threading.Tasks;
    using Burble;
@@ -17,6 +19,8 @@
 
       public async Task<FooResult> GetAsync()
       {
+         var init = await _httpClient.GetAsync("/init");
+
          var response = await _httpClient.GetAsync("/foo");
 
          if (response.IsSuccessStatusCode)

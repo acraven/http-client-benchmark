@@ -63,7 +63,7 @@
       [Test]
       public void logs_one_response_received_event()
       {
-         Assert.That(_callback.Reponses, Is.EqualTo(1));
+         Assert.That(_callback.Responses, Is.EqualTo(1));
       }
    }
 }

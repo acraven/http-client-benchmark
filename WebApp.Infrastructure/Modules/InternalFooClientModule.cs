@@ -1,15 +1,17 @@
-﻿namespace WebApp.Infrastructure.Modules
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+using Burble;
+using Burble.Abstractions;
+using Burble.Events;
+using Burble.Retrying;
+
+namespace WebApp.Infrastructure.Modules
 {
    using System;
-   using System.Diagnostics;
    using System.Net.Http;
-   using System.Threading;
-   using System.Threading.Tasks;
    using Autofac;
-   using Burble;
-   using Burble.Abstractions;
-   using Burble.Events;
-   using Burble.Retrying;
    using Foo.Api.Client;
 
    public class InternalFooClientModule : Module
@@ -40,12 +42,7 @@
          var config = context.Resolve<Config>();
          var eventCallback = context.Resolve<IHttpClientEventCallback>();
 
-         var loggingHandler = new InstrumentationHandler(config.FooUrl, eventCallback);
-         var httpClient = HttpClientFactory.Create(loggingHandler);
-         httpClient.BaseAddress = config.FooUrl;
-         httpClient.Timeout = config.FooTimeout;
-
-         return new HttpClientAdapter(httpClient);
+         return new HttpClientAdapter(Create(config.FooUrl.ToString(), (int)config.FooTimeout.TotalMilliseconds, 0, eventCallback));
       }
 
       private static IHttpClient CreateHttpClientWithInstrumentationAndRetry(IComponentContext context)
@@ -53,18 +50,31 @@
          var config = context.Resolve<Config>();
          var eventCallback = context.Resolve<IHttpClientEventCallback>();
 
-         var loggingHandler = new InstrumentationHandler(config.FooUrl, eventCallback);
-         var retryingHandler = new RetryingHandler(config.FooUrl, config.FooTimeout, new DefaultRetryPredicate(3), new ExponentialRetryDelay(200), eventCallback);
+         return new HttpClientAdapter(Create(config.FooUrl.ToString(), (int)config.FooTimeout.TotalMilliseconds, 3, eventCallback));
+      }
 
-         var httpClient = HttpClientFactory.Create(retryingHandler, loggingHandler);
-         httpClient.BaseAddress = config.FooUrl;
-         httpClient.Timeout = TimeSpan.FromSeconds(10);
+      private static HttpClient Create(string baseAddress, int timeoutMs, int retries, IHttpClientEventCallback callback)
+      {
+         var totalTimeoutMs = timeoutMs;
+         var handlers = new List<DelegatingHandler>();
 
-         //public int AggregateTimeoutMs
-         //} (_maxRetryAttempts + 1) * _timeout + _retryDelay.AggregateDelayMs(_maxRetryAttempts);
+         if (retries != 0)
+         {
+            var retryingHandler = new RetryingHandler(null, TimeSpan.FromMilliseconds(timeoutMs), new DefaultRetryPredicate(retries), new ExponentialRetryDelay(200), callback);
 
+            handlers.Add(retryingHandler);
 
-         return new HttpClientAdapter(httpClient);
+            //totalTimeoutMs = retryingHandler.AggregateTimeoutMs;
+            totalTimeoutMs = 10000;
+         }
+
+         handlers.Add(new InstrumentationHandler(null, callback));
+
+         var httpClient = HttpClientFactory.Create(handlers.ToArray());
+         httpClient.BaseAddress = new Uri(baseAddress);
+         httpClient.Timeout = TimeSpan.FromMilliseconds(totalTimeoutMs);
+
+         return httpClient;
       }
 
       private class InstrumentationHandler : DelegatingHandler
@@ -94,11 +104,11 @@
                _callback.Invoke(HttpClientTimedOut.Create(request, _baseAddress, stopwatch.ElapsedMilliseconds));
                throw;
             }
-            catch (Exception e)
-            {
-               _callback.Invoke(HttpClientExceptionThrown.Create(request, _baseAddress, stopwatch.ElapsedMilliseconds, e));
-               throw;
-            }
+            //catch (Exception e)
+            //{
+            //   _callback.Invoke(HttpClientExceptionThrown.Create(request, _baseAddress, stopwatch.ElapsedMilliseconds, e));
+            //   throw;
+            //}
          }
       }
 

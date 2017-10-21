@@ -1,14 +1,15 @@
-﻿namespace Foo.Api.Client.Tests.InternalDelegatingHandler
-{
-   using System;
-   using System.Threading.Tasks;
-   using Autofac;
-   using Autofac.Core;
-   using Burble.Abstractions;
-   using NUnit.Framework;
-   using WebApp.Infrastructure;
-   using WebApp.Infrastructure.Modules;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Autofac;
+using Autofac.Core;
+using Burble.Abstractions;
+using NUnit.Framework;
+using WebApp.Infrastructure;
+using WebApp.Infrastructure.Modules;
 
+namespace Foo.Api.Client.Tests.InternalDelegatingHandler
+{
    public class WithInstrumentationAndRetry
    {
       private FooResult _result;
@@ -57,19 +58,19 @@
       [Test]
       public void logs_four_request_initiated_events()
       {
-         Assert.That(_callback.Requests, Is.EqualTo(4));
+         Assert.That(_callback.Requests.Count(c => new Uri(c.Uri).LocalPath == "/foo"), Is.EqualTo(4));
       }
 
       [Test]
       public void logs_four_response_received_events()
       {
-         Assert.That(_callback.Reponses, Is.EqualTo(4));
+         Assert.That(_callback.Responses.Count(c => new Uri(c.Uri).LocalPath == "/foo"), Is.EqualTo(4));
       }
 
       [Test]
       public void logs_three_retry_events()
       {
-         Assert.That(_callback.Retries, Is.EqualTo(3));
+         Assert.That(_callback.Retries.Count(c => new Uri(c.Uri).LocalPath == "/foo"), Is.EqualTo(3));
       }
    }
 }

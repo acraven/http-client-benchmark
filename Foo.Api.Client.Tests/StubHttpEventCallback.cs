@@ -1,51 +1,53 @@
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+
 namespace Foo.Api.Client.Tests
 {
    using System;
-   using System.Threading;
    using Burble.Abstractions;
    using Burble.Events;
 
    public class StubHttpEventCallback : IHttpClientEventCallback
    {
-      private int _requests;
-      private int _responses;
-      private int _timeouts;
-      private int _exceptions;
-      private int _retries;
+      private readonly ConcurrentQueue<HttpClientRequestInitiated> _requests = new ConcurrentQueue<HttpClientRequestInitiated>();
+      private readonly ConcurrentQueue<HttpClientResponseReceived> _responses = new ConcurrentQueue<HttpClientResponseReceived>();
+      private readonly ConcurrentQueue<HttpClientTimedOut> _timeouts = new ConcurrentQueue<HttpClientTimedOut>();
+      private readonly ConcurrentQueue<HttpClientExceptionThrown> _exceptions = new ConcurrentQueue<HttpClientExceptionThrown>();
+      private readonly ConcurrentQueue<HttpClientRetryAttempt> _retries = new ConcurrentQueue<HttpClientRetryAttempt>();
 
-      public int Requests => _requests;
+      public IEnumerable<HttpClientRequestInitiated> Requests => _requests;
 
-      public int Reponses => _responses;
+      public IEnumerable<HttpClientResponseReceived> Responses => _responses;
 
-      public int Timeouts => _timeouts;
+      public IEnumerable<HttpClientTimedOut> Timeouts => _timeouts;
 
-      public int Exceptions => _exceptions;
+      public IEnumerable<HttpClientExceptionThrown> Exceptions => _exceptions;
 
-      public int Retries => _retries;
+      public IEnumerable<HttpClientRetryAttempt> Retries => _retries;
 
       public void Invoke(HttpClientRequestInitiated @event)
       {
-         Interlocked.Increment(ref _requests);
+         _requests.Enqueue(@event);
       }
 
       public void Invoke(HttpClientResponseReceived @event)
       {
-         Interlocked.Increment(ref _responses);
+         _responses.Enqueue(@event);
       }
 
       public void Invoke(HttpClientTimedOut @event)
       {
-         Interlocked.Increment(ref _timeouts);
+         _timeouts.Enqueue(@event);
       }
 
       public void Invoke(HttpClientExceptionThrown @event)
       {
-         Interlocked.Increment(ref _exceptions);
+         _exceptions.Enqueue(@event);
       }
 
       public void Invoke(HttpClientRetryAttempt @event)
       {
-         Interlocked.Increment(ref _retries);
+         _retries.Enqueue(@event);
       }
 
       public void Invoke(IHttpClientEvent @event)

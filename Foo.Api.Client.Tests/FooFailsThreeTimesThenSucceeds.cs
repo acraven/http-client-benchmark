@@ -9,13 +9,34 @@ namespace Foo.Api.Client.Tests
    {
       public FooFailsThreeTimesThenSucceeds()
       {
+         AddResponse(
+             "/head",
+             Method.HEAD,
+             Response.WithDelegate(r =>
+             {
+                var t = DateTime.UtcNow;
+                Console.WriteLine(t.ToString("HH:mm:ss.fff") + " " + r.Path);
+
+                return Response.WithBody(200, "{}");
+             }));
+
+         AddResponse(
+             "/init",
+             Method.GET,
+             Response.WithDelegate(r =>
+             {
+                var t = DateTime.UtcNow;
+                Console.WriteLine(t.ToString("HH:mm:ss.fff") + " " + r.Path);
+
+                return Response.WithBody(200, "{}");
+             }));
+
          var attempt = 0;
          AddResponse(
             "/foo",
             Method.GET,
             Response.WithDelegate(r =>
             {
-               Thread.Sleep(100);
                var t = DateTime.UtcNow;
                Console.WriteLine(t.ToString("HH:mm:ss.fff") + " " + r.Path);
 

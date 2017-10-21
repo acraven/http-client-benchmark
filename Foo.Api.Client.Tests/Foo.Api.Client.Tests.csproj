@@ -87,8 +87,6 @@
     <Compile Include="ExternalDecorator\WithInstrumentationRetryAndThrottling.cs" />
     <Compile Include="ExternalDecorator\WithInstrumentationAndRetry.cs" />
     <Compile Include="ExternalDecorator\WithInstrumentationOnly.cs" />
-    <Compile Include="ExternalDecorator\HttpClientOnly.cs" />
-    <Compile Include="InternalDelegatingHandler\HttpClientOnly.cs" />
     <Compile Include="InternalDelegatingHandler\WithInstrumentationAndRetry.cs" />
     <Compile Include="InternalDelegatingHandler\WithInstrumentationOnly.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

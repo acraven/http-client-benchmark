@@ -1,14 +1,14 @@
-﻿namespace Foo.Api.Client.Tests.InternalDelegatingHandler
-{
-   using System;
-   using System.Threading.Tasks;
-   using Autofac;
-   using Autofac.Core;
-   using Burble.Abstractions;
-   using NUnit.Framework;
-   using WebApp.Infrastructure;
-   using WebApp.Infrastructure.Modules;
+﻿using System;
+using System.Threading.Tasks;
+using Autofac;
+using Autofac.Core;
+using Burble.Abstractions;
+using NUnit.Framework;
+using WebApp.Infrastructure;
+using WebApp.Infrastructure.Modules;
 
+namespace Foo.Api.Client.Tests.InternalDelegatingHandler
+{
    public class WithInstrumentationOnly
    {
       private FooResult _result;
@@ -63,7 +63,7 @@
       [Test]
       public void logs_one_response_received_event()
       {
-        Assert.That(_callback.Reponses, Is.EqualTo(1));
+        Assert.That(_callback.Responses, Is.EqualTo(1));
       }
    }
 }

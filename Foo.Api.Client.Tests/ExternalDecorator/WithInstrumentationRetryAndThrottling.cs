@@ -1,4 +1,6 @@
-﻿namespace Foo.Api.Client.Tests.ExternalDecorator
+﻿using System.Linq;
+
+namespace Foo.Api.Client.Tests.ExternalDecorator
 {
    using System;
    using System.Threading.Tasks;
@@ -23,7 +25,7 @@
          {
             fooService.Start();
 
-            var config = new Config { FooUrl = fooService.Uri, FooTimeout = TimeSpan.FromSeconds(2) };
+            var config = new Config { FooUrl = fooService.Uri, FooTimeout = TimeSpan.FromSeconds(2), FooConcurrency = 5 };
 
             var container = BuildContainer<ExternalFooClientModule>(config, _callback);
             var testSubject = container.ResolveNamed<IGetFoo>("ExternalInstrumentationRetryThrottling");
@@ -57,19 +59,19 @@
       [Test]
       public void logs_four_request_initiated_events()
       {
-         Assert.That(_callback.Requests, Is.EqualTo(4));
+         Assert.That(_callback.Requests.Count(c => new Uri(c.Uri).LocalPath == "/foo"), Is.EqualTo(4));
       }
 
       [Test]
       public void logs_four_response_received_events()
       {
-         Assert.That(_callback.Reponses, Is.EqualTo(4));
+         Assert.That(_callback.Responses.Count(c => new Uri(c.Uri).LocalPath == "/foo"), Is.EqualTo(4));
       }
 
       [Test]
       public void logs_three_retry_events()
       {
-         Assert.That(_callback.Retries, Is.EqualTo(3));
+         Assert.That(_callback.Retries.Count(c => new Uri(c.Uri).LocalPath == "/foo"), Is.EqualTo(3));
       }
    }
 }
