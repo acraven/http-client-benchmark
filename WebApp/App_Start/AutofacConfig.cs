@@ -4,6 +4,7 @@
    using System.Web.Mvc;
    using Autofac;
    using Autofac.Integration.Mvc;
+   using Foo.Api.Client;
    using WebApp.Controllers;
    using WebApp.Infrastructure;
    using WebApp.Infrastructure.Modules;
@@ -20,18 +21,20 @@
 
          var config = new Config
          {
-            HelloWorldUrl = new Uri("http://192.168.99.100:8088"),
-            HelloWorldTimeout = TimeSpan.FromMilliseconds(750),
-            HelloWorldConcurrency = 3
+            FooUrl = new Uri("http://192.168.99.100:8088"),
+            //FooUrl = new Uri("http://www.google.co.uk/"),
+            FooTimeout = TimeSpan.FromMilliseconds(500),
+            FooConcurrency = 3
          };
          builder.RegisterInstance(config);
 
          builder.RegisterType<HelloWorldController>()
-            .WithParameter("failingHelloWorld", context => context.ResolveNamed<IHelloWorld>("FailingHelloWorld"))
-            .WithParameter("throttledHelloWorld", context => context.ResolveNamed<IHelloWorld>("ThrottledHelloWorld"));
+            .WithParameter("internalHttpClientOnly", context => context.ResolveNamed<ISendFoo>("InternalInstrumentation"))
+            .WithParameter("externalInstrumentationRetryThrottling", context => context.ResolveNamed<ISendFoo>("ExternalInstrumentationRetryThrottling"));
 
-         builder.RegisterModule<FailingClientModule>();
-         builder.RegisterModule<ThrottledClientModule>();
+         builder.RegisterModule<LoggingModule>();
+         builder.RegisterModule<InternalFooClientModule>();
+         builder.RegisterModule<ExternalFooClientModule>();
 
          var container = builder.Build();
          DependencyResolver.SetResolver(new AutofacDependencyResolver(container));

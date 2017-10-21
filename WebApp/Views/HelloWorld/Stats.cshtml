@@ -1,0 +1,20 @@
+﻿@using Burble.Logging
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>http-client-benchmark</title>
+</head>
+<body>
+<div>
+   @{
+      var a = DependencyResolver.Current.GetService<ILoggingCallback>();
+   }
+   <a href="@Url.Action("Failing")">Failing</a>
+   <a href="@Url.Action("Throttled")">Throttled</a>
+</div>
+</body>
+</html>
